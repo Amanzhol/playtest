@@ -25,7 +25,12 @@ class Container
     {
         if (! isset($this->bindings[$key]))
         {
-            throw new \Exception('No binding registered for '.$key);
+            if (class_exists($key))
+            {
+                return $this->make($key);
+            }
+
+            throw new \Exception('Class not existed '.$key);
         }
 
         $binding = $this->bindings[$key];
@@ -48,6 +53,28 @@ class Container
         }
 
         return $binding['concrete'];
+    }
+
+    /**
+     * @param string $key
+     * @return mixed|object|string|null
+     * @throws \ReflectionException
+     */
+    public function make(string $key): mixed
+    {
+        $reflector = new \ReflectionClass($key);
+        $constructor = $reflector->getConstructor();
+
+        if (!isset($constructor)) return new $key;
+
+        $dependencies = [];
+
+        foreach ($constructor->getParameters() as $parameter) {
+            $dependency = $parameter->getType()->getName();
+            $dependencies[] = $this->make($dependency);
+        }
+
+        return $reflector->newInstanceArgs($dependencies);
     }
 
 }
