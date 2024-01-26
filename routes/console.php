@@ -17,3 +17,9 @@ use Illuminate\Support\Facades\Artisan;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+class_alias("\App\For_Test\Http", "Http");
+
+Artisan::command('abrakan', function (){
+    dump((new Http)->name);
+});
