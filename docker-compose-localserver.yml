@@ -1,0 +1,42 @@
+version: "3.8"
+
+#      docker compose up nginx //run without npm
+services:
+  nginx:
+      build:
+          context: .
+          dockerfile: nginx.dockerfile
+      ports:
+          - "8080:80"
+      volumes:
+          - .:/var/www/html
+      depends_on:
+          - mariadb
+          - php-fpm
+
+  mariadb:
+      image: mariadb:latest
+      ports:
+          - "3806:3306"
+      environment:
+          MYSQL_DATABASE: laravel
+          MYSQL_USER: laravel
+          MYSQL_PASSWORD: secret
+          MYSQL_ROOT_PASSWORD: secret
+      volumes:
+          - ./volumes/mysql:/var/lib/mysql
+
+  php-fpm:
+      build:
+          context: .
+          dockerfile: php.dockerfile
+      volumes:
+          - .:/var/www/html
+
+  npm:
+      image: node:20.10-alpine
+      volumes:
+          - .:/var/www/html
+      working_dir: /var/www/html
+#      docker compose run --rm npm install, run
+      entrypoint: ["npm"]
