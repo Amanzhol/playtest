@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Jobs\StartDance;
 use App\Models\User;
+use Illuminate\Pipeline\Pipeline;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Redis;
 
@@ -20,7 +22,46 @@ use Illuminate\Support\Facades\Redis;
 Route::get('/', function () {
 
 //    dispatch(new StartDance(User::first()));
-    StartDance::dispatch(User::first());
+    StartDance::dispatch(User::first()) ;
+    return 'Here Queue testing';
+
+});
+
+Route::get('/redis', function () {
+
+    return Redis::command('incr',['visitors']);
+
+});
+
+Route::get('/cache/set', function () {
+
+    dd(Cache::put('test','some_cache'));
+
+});
+
+Route::get('/cache/get', function () {
+
+    dd(Cache::get('test'));
+
+});
+
+
+
+Route::get('/pipeline', function () {
+
+    $pipeline = app(Pipeline::class);
+    $pipeline->send('Whats up')
+        ->through([
+            function ($str, $next) {
+                $str = ucwords($str);
+                return $next($str);
+            }
+        ])
+        ->then(function ($string){
+            var_dump($string);
+        });
+
+    return "<br />".'Here Queue testing';
 
 });
 
